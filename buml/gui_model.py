@@ -12,6 +12,10 @@ from besser.BUML.metamodel.structural import (
 )
 
 # Classes
+User = Class(name="User")
+Customer = Class(name="Customer")
+Admin = Class(name="Admin")
+Order = Class(name="Order")
 Cart = Class(name="Cart")
 Review = Class(name="Review")
 Address = Class(name="Address")
@@ -21,10 +25,41 @@ CartItem = Class(name="CartItem")
 Album = Class(name="Album")
 Artist = Class(name="Artist")
 Track = Class(name="Track")
-User = Class(name="User")
-Customer = Class(name="Customer")
-Admin = Class(name="Admin")
-Order = Class(name="Order")
+
+# User class attributes and methods
+User_id: Property = Property(name="id", type=IntegerType)
+User_name: Property = Property(name="name", type=StringType)
+User_surname: Property = Property(name="surname", type=StringType)
+User_createdAt: Property = Property(name="createdAt", type=DateType)
+User_m_register: Method = Method(name="register", parameters={}, implementation_type=MethodImplementationType.NONE)
+User_m_login: Method = Method(name="login", parameters={}, implementation_type=MethodImplementationType.NONE)
+User.attributes={User_createdAt, User_id, User_name, User_surname}
+User.methods={User_m_login, User_m_register}
+
+# Customer class attributes and methods
+Customer_Id: Property = Property(name="Id", type=StringType)
+Customer_m_placeOrder: Method = Method(name="placeOrder", parameters={}, implementation_type=MethodImplementationType.NONE)
+Customer_m_addToCart: Method = Method(name="addToCart", parameters={}, type=StringType, implementation_type=MethodImplementationType.NONE)
+Customer_m_writeReview: Method = Method(name="writeReview", parameters={}, implementation_type=MethodImplementationType.NONE)
+Customer.attributes={Customer_Id}
+Customer.methods={Customer_m_addToCart, Customer_m_placeOrder, Customer_m_writeReview}
+
+# Admin class attributes and methods
+Admin_role: Property = Property(name="role", type=StringType)
+Admin_m_manageProducts: Method = Method(name="manageProducts", parameters={}, implementation_type=MethodImplementationType.NONE)
+Admin_m_manageOrders: Method = Method(name="manageOrders", parameters={}, implementation_type=MethodImplementationType.NONE)
+Admin.attributes={Admin_role}
+Admin.methods={Admin_m_manageOrders, Admin_m_manageProducts}
+
+# Order class attributes and methods
+Order_Id: Property = Property(name="Id", type=IntegerType)
+Order_status: Property = Property(name="status", type=StringType)
+Order_totalAmount: Property = Property(name="totalAmount", type=FloatType)
+Order_m_calculateTotal: Method = Method(name="calculateTotal", parameters={}, implementation_type=MethodImplementationType.NONE)
+Order_m_updateStatus: Method = Method(name="updateStatus", parameters={}, implementation_type=MethodImplementationType.NONE)
+Order_m_generateInvoice: Method = Method(name="generateInvoice", parameters={}, implementation_type=MethodImplementationType.NONE)
+Order.attributes={Order_Id, Order_status, Order_totalAmount}
+Order.methods={Order_m_calculateTotal, Order_m_generateInvoice, Order_m_updateStatus}
 
 # Cart class attributes and methods
 Cart_Id: Property = Property(name="Id", type=IntegerType)
@@ -44,10 +79,10 @@ Review.attributes={Review_Id, Review_comment, Review_rating}
 Review.methods={Review_m_isVerified}
 
 # Address class attributes and methods
+Address_Id: Property = Property(name="Id", type=IntegerType)
 Address_street: Property = Property(name="street", type=StringType)
 Address_city: Property = Property(name="city", type=FloatType)
 Address_zip_code: Property = Property(name="zip_code", type=StringType)
-Address_Id: Property = Property(name="Id", type=IntegerType)
 Address_m_validate: Method = Method(name="validate", parameters={}, implementation_type=MethodImplementationType.NONE)
 Address.attributes={Address_Id, Address_city, Address_street, Address_zip_code}
 Address.methods={Address_m_validate}
@@ -105,56 +140,7 @@ Track_m_getOverallDuration: Method = Method(name="getOverallDuration", parameter
 Track.attributes={Track_Id, Track_duration, Track_title, Track_truckNumber}
 Track.methods={Track_m_getOverallDuration}
 
-# User class attributes and methods
-User_id: Property = Property(name="id", type=IntegerType)
-User_name: Property = Property(name="name", type=StringType)
-User_surname: Property = Property(name="surname", type=StringType)
-User_createdAt: Property = Property(name="createdAt", type=DateType)
-User_m_register: Method = Method(name="register", parameters={}, implementation_type=MethodImplementationType.NONE)
-User_m_login: Method = Method(name="login", parameters={}, implementation_type=MethodImplementationType.NONE)
-User.attributes={User_createdAt, User_id, User_name, User_surname}
-User.methods={User_m_login, User_m_register}
-
-# Customer class attributes and methods
-Customer_Id: Property = Property(name="Id", type=StringType)
-Customer_m_placeOrder: Method = Method(name="placeOrder", parameters={}, implementation_type=MethodImplementationType.NONE)
-Customer_m_addToCart: Method = Method(name="addToCart", parameters={}, type=StringType, implementation_type=MethodImplementationType.NONE)
-Customer_m_writeReview: Method = Method(name="writeReview", parameters={}, implementation_type=MethodImplementationType.NONE)
-Customer.attributes={Customer_Id}
-Customer.methods={Customer_m_addToCart, Customer_m_placeOrder, Customer_m_writeReview}
-
-# Admin class attributes and methods
-Admin_role: Property = Property(name="role", type=StringType)
-Admin_m_manageProducts: Method = Method(name="manageProducts", parameters={}, implementation_type=MethodImplementationType.NONE)
-Admin_m_manageOrders: Method = Method(name="manageOrders", parameters={}, implementation_type=MethodImplementationType.NONE)
-Admin.attributes={Admin_role}
-Admin.methods={Admin_m_manageOrders, Admin_m_manageProducts}
-
-# Order class attributes and methods
-Order_Id: Property = Property(name="Id", type=IntegerType)
-Order_status: Property = Property(name="status", type=StringType)
-Order_totalAmount: Property = Property(name="totalAmount", type=FloatType)
-Order_m_calculateTotal: Method = Method(name="calculateTotal", parameters={}, implementation_type=MethodImplementationType.NONE)
-Order_m_updateStatus: Method = Method(name="updateStatus", parameters={}, implementation_type=MethodImplementationType.NONE)
-Order_m_generateInvoice: Method = Method(name="generateInvoice", parameters={}, implementation_type=MethodImplementationType.NONE)
-Order.attributes={Order_Id, Order_status, Order_totalAmount}
-Order.methods={Order_m_calculateTotal, Order_m_generateInvoice, Order_m_updateStatus}
-
 # Relationships
-Customer_Address: BinaryAssociation = BinaryAssociation(
-    name="Customer_Address",
-    ends={
-        Property(name="customer_3", type=Customer, multiplicity=Multiplicity(1, 1)),
-        Property(name="has", type=Address, multiplicity=Multiplicity(0, 9999))
-    }
-)
-createdBy: BinaryAssociation = BinaryAssociation(
-    name="createdBy",
-    ends={
-        Property(name="album", type=Album, multiplicity=Multiplicity(1, 1)),
-        Property(name="createdBy", type=Artist, multiplicity=Multiplicity(1, 9999))
-    }
-)
 Customer_Cart: BinaryAssociation = BinaryAssociation(
     name="Customer_Cart",
     ends={
@@ -162,25 +148,11 @@ Customer_Cart: BinaryAssociation = BinaryAssociation(
         Property(name="owns", type=Cart, multiplicity=Multiplicity(0, 1))
     }
 )
-contains: BinaryAssociation = BinaryAssociation(
-    name="contains",
-    ends={
-        Property(name="album_1", type=Album, multiplicity=Multiplicity(1, 1)),
-        Property(name="contains", type=Track, multiplicity=Multiplicity(1, 9999), is_composite=True)
-    }
-)
 places: BinaryAssociation = BinaryAssociation(
     name="places",
     ends={
         Property(name="customer_1", type=Customer, multiplicity=Multiplicity(1, 1), is_navigable=False),
         Property(name="places", type=Order, multiplicity=Multiplicity(0, 9999))
-    }
-)
-refersTo: BinaryAssociation = BinaryAssociation(
-    name="refersTo",
-    ends={
-        Property(name="orderitem", type=OrderItem, multiplicity=Multiplicity(1, 1)),
-        Property(name="refersTo", type=Album, multiplicity=Multiplicity(1, 1))
     }
 )
 writes: BinaryAssociation = BinaryAssociation(
@@ -218,6 +190,34 @@ Order_Address: BinaryAssociation = BinaryAssociation(
         Property(name="shipsTo", type=Address, multiplicity=Multiplicity(1, 1))
     }
 )
+Customer_Address: BinaryAssociation = BinaryAssociation(
+    name="Customer_Address",
+    ends={
+        Property(name="customer_3", type=Customer, multiplicity=Multiplicity(1, 1)),
+        Property(name="has", type=Address, multiplicity=Multiplicity(0, 9999))
+    }
+)
+createdBy: BinaryAssociation = BinaryAssociation(
+    name="createdBy",
+    ends={
+        Property(name="album", type=Album, multiplicity=Multiplicity(1, 1)),
+        Property(name="createdBy", type=Artist, multiplicity=Multiplicity(1, 9999))
+    }
+)
+contains: BinaryAssociation = BinaryAssociation(
+    name="contains",
+    ends={
+        Property(name="album_1", type=Album, multiplicity=Multiplicity(1, 1)),
+        Property(name="contains", type=Track, multiplicity=Multiplicity(1, 9999), is_composite=True)
+    }
+)
+refersTo: BinaryAssociation = BinaryAssociation(
+    name="refersTo",
+    ends={
+        Property(name="orderitem", type=OrderItem, multiplicity=Multiplicity(1, 1)),
+        Property(name="refersTo", type=Album, multiplicity=Multiplicity(1, 1))
+    }
+)
 
 # Generalizations
 gen_Customer_User = Generalization(general=User, specific=Customer)
@@ -226,8 +226,8 @@ gen_Admin_User = Generalization(general=User, specific=Admin)
 # Domain Model
 domain_model = DomainModel(
     name="Library",
-    types={Cart, Review, Address, OrderItem, Payment, CartItem, Album, Artist, Track, User, Customer, Admin, Order},
-    associations={Customer_Address, createdBy, Customer_Cart, contains, places, refersTo, writes, CartItem_Cart, OrderItem_Order, Payment_Order, Order_Address},
+    types={User, Customer, Admin, Order, Cart, Review, Address, OrderItem, Payment, CartItem, Album, Artist, Track},
+    associations={Customer_Cart, places, writes, CartItem_Cart, OrderItem_Order, Payment_Order, Order_Address, Customer_Address, createdBy, contains, refersTo},
     generalizations={gen_Customer_User, gen_Admin_User},
     metadata=None
 )
