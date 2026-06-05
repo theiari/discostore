@@ -114,20 +114,20 @@ class User(Base):
         "polymorphic_on": "type_spec",
     }
 
-class Admin(User):
-    __tablename__ = "admin"
-    id: Mapped_[int] = mapped_column(ForeignKey_("user.id"), primary_key=True)
-    role: Mapped_[str] = mapped_column(String_(100))
-    __mapper_args__ = {
-        "polymorphic_identity": "admin",
-    }
-
 class Customer(User):
     __tablename__ = "customer"
     id: Mapped_[int] = mapped_column(ForeignKey_("user.id"), primary_key=True)
     Id: Mapped_[str] = mapped_column(String_(100))
     __mapper_args__ = {
         "polymorphic_identity": "customer",
+    }
+
+class Admin(User):
+    __tablename__ = "admin"
+    id: Mapped_[int] = mapped_column(ForeignKey_("user.id"), primary_key=True)
+    role: Mapped_[str] = mapped_column(String_(100))
+    __mapper_args__ = {
+        "polymorphic_identity": "admin",
     }
 
 
@@ -138,8 +138,8 @@ Track.album_1: Mapped_["Album"] = relationship("Album", back_populates="contains
 Artist.album: Mapped_["Album"] = relationship("Album", back_populates="createdBy", foreign_keys=[Artist.album_id])
 
 #--- Relationships of the album table
-Album.contains: Mapped_[List_["Track"]] = relationship("Track", back_populates="album_1", foreign_keys=[Track.album_1_id])
 Album.orderitem: Mapped_["OrderItem"] = relationship("OrderItem", back_populates="refersTo", foreign_keys=[Album.orderitem_id])
+Album.contains: Mapped_[List_["Track"]] = relationship("Track", back_populates="album_1", foreign_keys=[Track.album_1_id])
 Album.createdBy: Mapped_[List_["Artist"]] = relationship("Artist", back_populates="album", foreign_keys=[Artist.album_id])
 
 #--- Relationships of the cartitem table
@@ -164,15 +164,15 @@ Cart.customer: Mapped_["Customer"] = relationship("Customer", back_populates="ow
 Cart.cartitem: Mapped_[List_["CartItem"]] = relationship("CartItem", back_populates="cart", foreign_keys=[CartItem.cart_id])
 
 #--- Relationships of the order table
-Order.contains: Mapped_[List_["OrderItem"]] = relationship("OrderItem", back_populates="order", foreign_keys=[OrderItem.order_id])
 Order.shipsTo: Mapped_["Address"] = relationship("Address", back_populates="order_2", foreign_keys=[Address.order_2_id])
 Order.paidVia: Mapped_["Payment"] = relationship("Payment", back_populates="order_1", foreign_keys=[Order.paidVia_id])
+Order.contains: Mapped_[List_["OrderItem"]] = relationship("OrderItem", back_populates="order", foreign_keys=[OrderItem.order_id])
 Order.customer_1: Mapped_["Customer"] = relationship("Customer", back_populates="places", foreign_keys=[Order.customer_1_id])
 
 #--- Relationships of the customer table
 Customer.has: Mapped_[List_["Address"]] = relationship("Address", back_populates="customer_3", foreign_keys=[Address.customer_3_id])
-Customer.writes: Mapped_[List_["Review"]] = relationship("Review", back_populates="customer_2", foreign_keys=[Review.customer_2_id])
 Customer.places: Mapped_[List_["Order"]] = relationship("Order", back_populates="customer_1", foreign_keys=[Order.customer_1_id])
+Customer.writes: Mapped_[List_["Review"]] = relationship("Review", back_populates="customer_2", foreign_keys=[Review.customer_2_id])
 Customer.owns: Mapped_["Cart"] = relationship("Cart", back_populates="customer", foreign_keys=[Cart.customer_id])
 
 # Database connection

@@ -12,43 +12,43 @@ from pydantic import BaseModel, field_validator
 # Classes are defined here
 ############################################
 class TrackCreate(BaseModel):
-    truckNumber: int
-    Id: int
     duration: timedelta
     title: str
+    truckNumber: int
+    Id: int
     album_1: int  # N:1 Relationship (mandatory)
 
 
 class ArtistCreate(BaseModel):
-    name: str
     Id: int
-    country: str
     bio: str
+    name: str
+    country: str
     album: int  # N:1 Relationship (mandatory)
 
 
 class AlbumCreate(BaseModel):
-    title: str
-    stockQuantity: int
     format: str
-    artist: str
+    stockQuantity: int
     price: float
-    Id: int
+    artist: str
     releaseYear: date
+    Id: int
+    title: str
     orderitem: int  # 1:1 Relationship (mandatory)
-    contains: Optional[List[int]] = None  # 1:N Relationship
     createdBy: Optional[List[int]] = None  # 1:N Relationship
+    contains: Optional[List[int]] = None  # 1:N Relationship
 
 
 class CartItemCreate(BaseModel):
-    quantity: int
     unintPrice: float
+    quantity: int
     cart: int  # N:1 Relationship (mandatory)
 
 
 class PaymentCreate(BaseModel):
-    method: str
     Id: int
+    method: str
     amount: float
     order_1: int  # 1:1 Relationship (mandatory)
 
@@ -56,23 +56,23 @@ class PaymentCreate(BaseModel):
 class OrderItemCreate(BaseModel):
     quantity: int
     unintPrice: str
-    order: int  # N:1 Relationship (mandatory)
     refersTo: int  # 1:1 Relationship (mandatory)
+    order: int  # N:1 Relationship (mandatory)
 
 
 class AddressCreate(BaseModel):
+    street: str
+    city: float
     zip_code: str
     Id: int
-    city: float
-    street: str
     customer_3: int  # N:1 Relationship (mandatory)
     order_2: int  # 1:1 Relationship (mandatory)
 
 
 class ReviewCreate(BaseModel):
-    comment: str
-    Id: int
     rating: str
+    Id: int
+    comment: str
     customer_2: int  # N:1 Relationship (mandatory)
 
 
@@ -82,23 +82,19 @@ class CartCreate(BaseModel):
 
 
 class OrderCreate(BaseModel):
-    status: str
     totalAmount: float
     Id: int
+    status: str
     contains: Optional[List[int]] = None  # 1:N Relationship
     paidVia: int  # 1:1 Relationship (mandatory)
     shipsTo: int  # 1:1 Relationship (mandatory)
 
 
 class UserCreate(BaseModel):
-    createdAt: date
-    surname: str
     name: str
+    createdAt: date
     id: int
-
-
-class AdminCreate(UserCreate):
-    role: str
+    surname: str
 
 
 class CustomerCreate(UserCreate):
@@ -107,5 +103,9 @@ class CustomerCreate(UserCreate):
     has: Optional[List[int]] = None  # 1:N Relationship
     places: Optional[List[int]] = None  # 1:N Relationship
     writes: Optional[List[int]] = None  # 1:N Relationship
+
+
+class AdminCreate(UserCreate):
+    role: str
 
 

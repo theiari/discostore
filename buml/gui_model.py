@@ -141,13 +141,6 @@ Track.attributes={Track_Id, Track_duration, Track_title, Track_truckNumber}
 Track.methods={Track_m_getOverallDuration}
 
 # Relationships
-Customer_Cart: BinaryAssociation = BinaryAssociation(
-    name="Customer_Cart",
-    ends={
-        Property(name="customer", type=Customer, multiplicity=Multiplicity(1, 1), is_navigable=False),
-        Property(name="owns", type=Cart, multiplicity=Multiplicity(0, 1))
-    }
-)
 places: BinaryAssociation = BinaryAssociation(
     name="places",
     ends={
@@ -190,6 +183,13 @@ Order_Address: BinaryAssociation = BinaryAssociation(
         Property(name="shipsTo", type=Address, multiplicity=Multiplicity(1, 1))
     }
 )
+Customer_Cart: BinaryAssociation = BinaryAssociation(
+    name="Customer_Cart",
+    ends={
+        Property(name="customer", type=Customer, multiplicity=Multiplicity(1, 1), is_navigable=False),
+        Property(name="owns", type=Cart, multiplicity=Multiplicity(0, 1))
+    }
+)
 Customer_Address: BinaryAssociation = BinaryAssociation(
     name="Customer_Address",
     ends={
@@ -227,7 +227,7 @@ gen_Admin_User = Generalization(general=User, specific=Admin)
 domain_model = DomainModel(
     name="Library",
     types={User, Customer, Admin, Order, Cart, Review, Address, OrderItem, Payment, CartItem, Album, Artist, Track},
-    associations={Customer_Cart, places, writes, CartItem_Cart, OrderItem_Order, Payment_Order, Order_Address, Customer_Address, createdBy, contains, refersTo},
+    associations={places, writes, CartItem_Cart, OrderItem_Order, Payment_Order, Order_Address, Customer_Cart, Customer_Address, createdBy, contains, refersTo},
     generalizations={gen_Customer_User, gen_Admin_User},
     metadata=None
 )
@@ -263,7 +263,7 @@ wrapper = Screen(name="wrapper", description="User", view_elements=set(), is_mai
 wrapper.component_id = "page-user-0"
 i0oo6 = Text(
     name="i0oo6",
-    content="BESSER",
+    content="Music Store",
     description="Text element",
     styling=Styling(size=Size(font_size="24px", font_weight="bold", margin_top="0", margin_bottom="30px"), color=Color(color_palette="default")),
     component_id="i0oo6",

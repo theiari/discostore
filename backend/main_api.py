@@ -77,11 +77,11 @@ app = FastAPI(
         {"name": "Order Methods", "description": "Execute Order methods"},
         {"name": "User", "description": "Operations for User entities"},
         {"name": "User Methods", "description": "Execute User methods"},
-        {"name": "Admin", "description": "Operations for Admin entities"},
-        {"name": "Admin Methods", "description": "Execute Admin methods"},
         {"name": "Customer", "description": "Operations for Customer entities"},
         {"name": "Customer Relationships", "description": "Manage Customer relationships"},
         {"name": "Customer Methods", "description": "Execute Customer methods"},
+        {"name": "Admin", "description": "Operations for Admin entities"},
+        {"name": "Admin Methods", "description": "Execute Admin methods"},
     ]
 )
 
@@ -239,8 +239,8 @@ def get_statistics(database: Session = Depends(get_db)):
     stats["cart_count"] = database.query(Cart).count()
     stats["order_count"] = database.query(Order).count()
     stats["user_count"] = database.query(User).count()
-    stats["admin_count"] = database.query(Admin).count()
     stats["customer_count"] = database.query(Customer).count()
+    stats["admin_count"] = database.query(Admin).count()
     stats["total_entities"] = sum(stats.values())
     return stats
 
@@ -400,7 +400,7 @@ async def create_track(track_data: TrackCreate, database: Session = Depends(get_
         raise HTTPException(status_code=400, detail="Album ID is required")
 
     db_track = Track(
-        truckNumber=track_data.truckNumber,        Id=track_data.Id,        duration=track_data.duration,        title=track_data.title,        album_1_id=track_data.album_1        )
+        duration=track_data.duration,        title=track_data.title,        truckNumber=track_data.truckNumber,        Id=track_data.Id,        album_1_id=track_data.album_1        )
 
     database.add(db_track)
     database.commit()
@@ -425,7 +425,7 @@ async def bulk_create_track(items: list[TrackCreate], database: Session = Depend
                 raise ValueError("Album ID is required")
 
             db_track = Track(
-                truckNumber=item_data.truckNumber,                Id=item_data.Id,                duration=item_data.duration,                title=item_data.title,                album_1_id=item_data.album_1            )
+                duration=item_data.duration,                title=item_data.title,                truckNumber=item_data.truckNumber,                Id=item_data.Id,                album_1_id=item_data.album_1            )
             database.add(db_track)
             database.flush()  # Get ID without committing
             created_items.append(db_track.id)
@@ -472,10 +472,10 @@ async def update_track(track_id: int, track_data: TrackCreate, database: Session
     if db_track is None:
         raise HTTPException(status_code=404, detail="Track not found")
 
-    setattr(db_track, 'truckNumber', track_data.truckNumber)
-    setattr(db_track, 'Id', track_data.Id)
     setattr(db_track, 'duration', track_data.duration)
     setattr(db_track, 'title', track_data.title)
+    setattr(db_track, 'truckNumber', track_data.truckNumber)
+    setattr(db_track, 'Id', track_data.Id)
     if track_data.album_1 is not None:
         db_album_1 = database.query(Album).filter(Album.id == track_data.album_1).first()
         if not db_album_1:
@@ -653,7 +653,7 @@ async def create_artist(artist_data: ArtistCreate, database: Session = Depends(g
         raise HTTPException(status_code=400, detail="Album ID is required")
 
     db_artist = Artist(
-        name=artist_data.name,        Id=artist_data.Id,        country=artist_data.country,        bio=artist_data.bio,        album_id=artist_data.album        )
+        Id=artist_data.Id,        bio=artist_data.bio,        name=artist_data.name,        country=artist_data.country,        album_id=artist_data.album        )
 
     database.add(db_artist)
     database.commit()
@@ -678,7 +678,7 @@ async def bulk_create_artist(items: list[ArtistCreate], database: Session = Depe
                 raise ValueError("Album ID is required")
 
             db_artist = Artist(
-                name=item_data.name,                Id=item_data.Id,                country=item_data.country,                bio=item_data.bio,                album_id=item_data.album            )
+                Id=item_data.Id,                bio=item_data.bio,                name=item_data.name,                country=item_data.country,                album_id=item_data.album            )
             database.add(db_artist)
             database.flush()  # Get ID without committing
             created_items.append(db_artist.id)
@@ -725,10 +725,10 @@ async def update_artist(artist_id: int, artist_data: ArtistCreate, database: Ses
     if db_artist is None:
         raise HTTPException(status_code=404, detail="Artist not found")
 
-    setattr(db_artist, 'name', artist_data.name)
     setattr(db_artist, 'Id', artist_data.Id)
-    setattr(db_artist, 'country', artist_data.country)
     setattr(db_artist, 'bio', artist_data.bio)
+    setattr(db_artist, 'name', artist_data.name)
+    setattr(db_artist, 'country', artist_data.country)
     if artist_data.album is not None:
         db_album = database.query(Album).filter(Album.id == artist_data.album).first()
         if not db_album:
@@ -843,18 +843,18 @@ def get_all_album(detailed: bool = False, database: Session = Depends(get_db)) -
                 item_dict['orderitem'] = None
 
             # Add many-to-many and one-to-many relationship objects (full details)
-            track_list = database.query(Track).filter(Track.album_1_id == album_item.id).all()
-            item_dict['contains'] = []
-            for track_obj in track_list:
-                track_dict = track_obj.__dict__.copy()
-                track_dict.pop('_sa_instance_state', None)
-                item_dict['contains'].append(track_dict)
             artist_list = database.query(Artist).filter(Artist.album_id == album_item.id).all()
             item_dict['createdBy'] = []
             for artist_obj in artist_list:
                 artist_dict = artist_obj.__dict__.copy()
                 artist_dict.pop('_sa_instance_state', None)
                 item_dict['createdBy'].append(artist_dict)
+            track_list = database.query(Track).filter(Track.album_1_id == album_item.id).all()
+            item_dict['contains'] = []
+            for track_obj in track_list:
+                track_dict = track_obj.__dict__.copy()
+                track_dict.pop('_sa_instance_state', None)
+                item_dict['contains'].append(track_dict)
 
             result.append(item_dict)
         return result
@@ -887,11 +887,11 @@ def get_paginated_album(skip: int = 0, limit: int = 100, detailed: bool = False,
 
     result = []
     for album_item in album_list:
-        contains_ids = database.query(Track.id).filter(Track.album_1_id == album_item.id).all()
         createdBy_ids = database.query(Artist.id).filter(Artist.album_id == album_item.id).all()
+        contains_ids = database.query(Track.id).filter(Track.album_1_id == album_item.id).all()
         item_data = {
             "album": album_item,
-            "contains_ids": [x[0] for x in contains_ids],            "createdBy_ids": [x[0] for x in createdBy_ids]        }
+            "createdBy_ids": [x[0] for x in createdBy_ids],            "contains_ids": [x[0] for x in contains_ids]        }
         result.append(item_data)
     return {
         "total": total,
@@ -919,11 +919,11 @@ async def get_album(album_id: int, database: Session = Depends(get_db)) -> Album
     if db_album is None:
         raise HTTPException(status_code=404, detail="Album not found")
 
-    contains_ids = database.query(Track.id).filter(Track.album_1_id == db_album.id).all()
     createdBy_ids = database.query(Artist.id).filter(Artist.album_id == db_album.id).all()
+    contains_ids = database.query(Track.id).filter(Track.album_1_id == db_album.id).all()
     response_data = {
         "album": db_album,
-        "contains_ids": [x[0] for x in contains_ids],        "createdBy_ids": [x[0] for x in createdBy_ids]}
+        "createdBy_ids": [x[0] for x in createdBy_ids],        "contains_ids": [x[0] for x in contains_ids]}
     return response_data
 
 
@@ -939,24 +939,12 @@ async def create_album(album_data: AlbumCreate, database: Session = Depends(get_
         raise HTTPException(status_code=400, detail="OrderItem ID is required")
 
     db_album = Album(
-        title=album_data.title,        stockQuantity=album_data.stockQuantity,        format=album_data.format,        artist=album_data.artist,        price=album_data.price,        Id=album_data.Id,        releaseYear=album_data.releaseYear,        orderitem_id=album_data.orderitem        )
+        format=album_data.format,        stockQuantity=album_data.stockQuantity,        price=album_data.price,        artist=album_data.artist,        releaseYear=album_data.releaseYear,        Id=album_data.Id,        title=album_data.title,        orderitem_id=album_data.orderitem        )
 
     database.add(db_album)
     database.commit()
     database.refresh(db_album)
 
-    if album_data.contains:
-        # Validate that all Track IDs exist
-        for track_id in album_data.contains:
-            db_track = database.query(Track).filter(Track.id == track_id).first()
-            if not db_track:
-                raise HTTPException(status_code=400, detail=f"Track with id {track_id} not found")
-
-        # Update the related entities with the new foreign key
-        database.query(Track).filter(Track.id.in_(album_data.contains)).update(
-            {Track.album_1_id: db_album.id}, synchronize_session=False
-        )
-        database.commit()
     if album_data.createdBy:
         # Validate that all Artist IDs exist
         for artist_id in album_data.createdBy:
@@ -969,14 +957,26 @@ async def create_album(album_data: AlbumCreate, database: Session = Depends(get_
             {Artist.album_id: db_album.id}, synchronize_session=False
         )
         database.commit()
+    if album_data.contains:
+        # Validate that all Track IDs exist
+        for track_id in album_data.contains:
+            db_track = database.query(Track).filter(Track.id == track_id).first()
+            if not db_track:
+                raise HTTPException(status_code=400, detail=f"Track with id {track_id} not found")
+
+        # Update the related entities with the new foreign key
+        database.query(Track).filter(Track.id.in_(album_data.contains)).update(
+            {Track.album_1_id: db_album.id}, synchronize_session=False
+        )
+        database.commit()
 
 
 
-    contains_ids = database.query(Track.id).filter(Track.album_1_id == db_album.id).all()
     createdBy_ids = database.query(Artist.id).filter(Artist.album_id == db_album.id).all()
+    contains_ids = database.query(Track.id).filter(Track.album_1_id == db_album.id).all()
     response_data = {
         "album": db_album,
-        "contains_ids": [x[0] for x in contains_ids],        "createdBy_ids": [x[0] for x in createdBy_ids]    }
+        "createdBy_ids": [x[0] for x in createdBy_ids],        "contains_ids": [x[0] for x in contains_ids]    }
     return response_data
 
 
@@ -993,7 +993,7 @@ async def bulk_create_album(items: list[AlbumCreate], database: Session = Depend
                 raise ValueError("OrderItem ID is required")
 
             db_album = Album(
-                title=item_data.title,                stockQuantity=item_data.stockQuantity,                format=item_data.format,                artist=item_data.artist,                price=item_data.price,                Id=item_data.Id,                releaseYear=item_data.releaseYear,                orderitem_id=item_data.orderitem            )
+                format=item_data.format,                stockQuantity=item_data.stockQuantity,                price=item_data.price,                artist=item_data.artist,                releaseYear=item_data.releaseYear,                Id=item_data.Id,                title=item_data.title,                orderitem_id=item_data.orderitem            )
             database.add(db_album)
             database.flush()  # Get ID without committing
             created_items.append(db_album.id)
@@ -1040,36 +1040,18 @@ async def update_album(album_id: int, album_data: AlbumCreate, database: Session
     if db_album is None:
         raise HTTPException(status_code=404, detail="Album not found")
 
-    setattr(db_album, 'title', album_data.title)
-    setattr(db_album, 'stockQuantity', album_data.stockQuantity)
     setattr(db_album, 'format', album_data.format)
-    setattr(db_album, 'artist', album_data.artist)
+    setattr(db_album, 'stockQuantity', album_data.stockQuantity)
     setattr(db_album, 'price', album_data.price)
-    setattr(db_album, 'Id', album_data.Id)
+    setattr(db_album, 'artist', album_data.artist)
     setattr(db_album, 'releaseYear', album_data.releaseYear)
+    setattr(db_album, 'Id', album_data.Id)
+    setattr(db_album, 'title', album_data.title)
     if album_data.orderitem is not None:
         db_orderitem = database.query(OrderItem).filter(OrderItem.id == album_data.orderitem).first()
         if not db_orderitem:
             raise HTTPException(status_code=400, detail="OrderItem not found")
         setattr(db_album, 'orderitem_id', album_data.orderitem)
-    if album_data.contains is not None:
-        # Clear all existing relationships (set foreign key to NULL)
-        database.query(Track).filter(Track.album_1_id == db_album.id).update(
-            {Track.album_1_id: None}, synchronize_session=False
-        )
-
-        # Set new relationships if list is not empty
-        if album_data.contains:
-            # Validate that all IDs exist
-            for track_id in album_data.contains:
-                db_track = database.query(Track).filter(Track.id == track_id).first()
-                if not db_track:
-                    raise HTTPException(status_code=400, detail=f"Track with id {track_id} not found")
-
-            # Update the related entities with the new foreign key
-            database.query(Track).filter(Track.id.in_(album_data.contains)).update(
-                {Track.album_1_id: db_album.id}, synchronize_session=False
-            )
     if album_data.createdBy is not None:
         # Clear all existing relationships (set foreign key to NULL)
         database.query(Artist).filter(Artist.album_id == db_album.id).update(
@@ -1088,14 +1070,32 @@ async def update_album(album_id: int, album_data: AlbumCreate, database: Session
             database.query(Artist).filter(Artist.id.in_(album_data.createdBy)).update(
                 {Artist.album_id: db_album.id}, synchronize_session=False
             )
+    if album_data.contains is not None:
+        # Clear all existing relationships (set foreign key to NULL)
+        database.query(Track).filter(Track.album_1_id == db_album.id).update(
+            {Track.album_1_id: None}, synchronize_session=False
+        )
+
+        # Set new relationships if list is not empty
+        if album_data.contains:
+            # Validate that all IDs exist
+            for track_id in album_data.contains:
+                db_track = database.query(Track).filter(Track.id == track_id).first()
+                if not db_track:
+                    raise HTTPException(status_code=400, detail=f"Track with id {track_id} not found")
+
+            # Update the related entities with the new foreign key
+            database.query(Track).filter(Track.id.in_(album_data.contains)).update(
+                {Track.album_1_id: db_album.id}, synchronize_session=False
+            )
     database.commit()
     database.refresh(db_album)
 
-    contains_ids = database.query(Track.id).filter(Track.album_1_id == db_album.id).all()
     createdBy_ids = database.query(Artist.id).filter(Artist.album_id == db_album.id).all()
+    contains_ids = database.query(Track.id).filter(Track.album_1_id == db_album.id).all()
     response_data = {
         "album": db_album,
-        "contains_ids": [x[0] for x in contains_ids],        "createdBy_ids": [x[0] for x in createdBy_ids]    }
+        "createdBy_ids": [x[0] for x in createdBy_ids],        "contains_ids": [x[0] for x in contains_ids]    }
     return response_data
 
 
@@ -1108,21 +1108,6 @@ async def delete_album(album_id: int, database: Session = Depends(get_db)):
     database.commit()
     return db_album
 
-
-@app.get("/album/{album_id}/contains/", response_model=None, tags=["Album Relationships"])
-async def get_contains_of_album(album_id: int, database: Session = Depends(get_db)):
-    """Get all Track entities related to this Album through contains"""
-    db_album = database.query(Album).filter(Album.id == album_id).first()
-    if db_album is None:
-        raise HTTPException(status_code=404, detail="Album not found")
-
-    contains_list = database.query(Track).filter(Track.album_1_id == album_id).all()
-
-    return {
-        "album_id": album_id,
-        "contains_count": len(contains_list),
-        "contains": contains_list
-    }
 
 @app.get("/album/{album_id}/createdBy/", response_model=None, tags=["Album Relationships"])
 async def get_createdBy_of_album(album_id: int, database: Session = Depends(get_db)):
@@ -1139,64 +1124,26 @@ async def get_createdBy_of_album(album_id: int, database: Session = Depends(get_
         "createdBy": createdBy_list
     }
 
+@app.get("/album/{album_id}/contains/", response_model=None, tags=["Album Relationships"])
+async def get_contains_of_album(album_id: int, database: Session = Depends(get_db)):
+    """Get all Track entities related to this Album through contains"""
+    db_album = database.query(Album).filter(Album.id == album_id).first()
+    if db_album is None:
+        raise HTTPException(status_code=404, detail="Album not found")
+
+    contains_list = database.query(Track).filter(Track.album_1_id == album_id).all()
+
+    return {
+        "album_id": album_id,
+        "contains_count": len(contains_list),
+        "contains": contains_list
+    }
+
 
 
 ############################################
 #   Album Method Endpoints
 ############################################
-
-
-
-
-@app.post("/album/methods/updateStock/", response_model=None, tags=["Album Methods"])
-async def album_updateStock(
-    database: Session = Depends(get_db)
-):
-    """
-    Execute the updateStock class method on Album.
-    This method operates on all Album entities or performs class-level operations.
-    """
-    try:
-        # Capture stdout to include print outputs in the response
-        import io
-        import sys
-        captured_output = io.StringIO()
-        sys.stdout = captured_output
-
-
-        # Method body not defined
-        result = None
-
-        # Restore stdout
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
-
-        # Handle result serialization
-        if hasattr(result, '__iter__') and not isinstance(result, (str, dict)):
-            # It's a list of entities
-            result_data = []
-            for item in result:
-                if hasattr(item, '__dict__'):
-                    item_dict = {k: v for k, v in item.__dict__.items() if not k.startswith('_')}
-                    result_data.append(item_dict)
-                else:
-                    result_data.append(str(item))
-            result = result_data
-        elif hasattr(result, '__dict__'):
-            result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
-
-        return {
-            "class": "Album",
-            "method": "updateStock",
-            "status": "executed",
-            "result": result,
-            "output": output if output else None
-        }
-    except Exception as e:
-        sys.stdout = sys.__stdout__
-        raise HTTPException(status_code=500, detail=f"Method execution failed: {str(e)}")
-
-
 
 
 
@@ -1241,6 +1188,59 @@ async def album_isAvailable(
         return {
             "class": "Album",
             "method": "isAvailable",
+            "status": "executed",
+            "result": result,
+            "output": output if output else None
+        }
+    except Exception as e:
+        sys.stdout = sys.__stdout__
+        raise HTTPException(status_code=500, detail=f"Method execution failed: {str(e)}")
+
+
+
+
+
+
+@app.post("/album/methods/updateStock/", response_model=None, tags=["Album Methods"])
+async def album_updateStock(
+    database: Session = Depends(get_db)
+):
+    """
+    Execute the updateStock class method on Album.
+    This method operates on all Album entities or performs class-level operations.
+    """
+    try:
+        # Capture stdout to include print outputs in the response
+        import io
+        import sys
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
+
+        # Method body not defined
+        result = None
+
+        # Restore stdout
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        # Handle result serialization
+        if hasattr(result, '__iter__') and not isinstance(result, (str, dict)):
+            # It's a list of entities
+            result_data = []
+            for item in result:
+                if hasattr(item, '__dict__'):
+                    item_dict = {k: v for k, v in item.__dict__.items() if not k.startswith('_')}
+                    result_data.append(item_dict)
+                else:
+                    result_data.append(str(item))
+            result = result_data
+        elif hasattr(result, '__dict__'):
+            result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
+
+        return {
+            "class": "Album",
+            "method": "updateStock",
             "status": "executed",
             "result": result,
             "output": output if output else None
@@ -1348,7 +1348,7 @@ async def create_cartitem(cartitem_data: CartItemCreate, database: Session = Dep
         raise HTTPException(status_code=400, detail="Cart ID is required")
 
     db_cartitem = CartItem(
-        quantity=cartitem_data.quantity,        unintPrice=cartitem_data.unintPrice,        cart_id=cartitem_data.cart        )
+        unintPrice=cartitem_data.unintPrice,        quantity=cartitem_data.quantity,        cart_id=cartitem_data.cart        )
 
     database.add(db_cartitem)
     database.commit()
@@ -1373,7 +1373,7 @@ async def bulk_create_cartitem(items: list[CartItemCreate], database: Session = 
                 raise ValueError("Cart ID is required")
 
             db_cartitem = CartItem(
-                quantity=item_data.quantity,                unintPrice=item_data.unintPrice,                cart_id=item_data.cart            )
+                unintPrice=item_data.unintPrice,                quantity=item_data.quantity,                cart_id=item_data.cart            )
             database.add(db_cartitem)
             database.flush()  # Get ID without committing
             created_items.append(db_cartitem.id)
@@ -1420,8 +1420,8 @@ async def update_cartitem(cartitem_id: int, cartitem_data: CartItemCreate, datab
     if db_cartitem is None:
         raise HTTPException(status_code=404, detail="CartItem not found")
 
-    setattr(db_cartitem, 'quantity', cartitem_data.quantity)
     setattr(db_cartitem, 'unintPrice', cartitem_data.unintPrice)
+    setattr(db_cartitem, 'quantity', cartitem_data.quantity)
     if cartitem_data.cart is not None:
         db_cart = database.query(Cart).filter(Cart.id == cartitem_data.cart).first()
         if not db_cart:
@@ -1593,7 +1593,7 @@ async def create_payment(payment_data: PaymentCreate, database: Session = Depend
 
 
     db_payment = Payment(
-        method=payment_data.method,        Id=payment_data.Id,        amount=payment_data.amount        )
+        Id=payment_data.Id,        method=payment_data.method,        amount=payment_data.amount        )
 
     database.add(db_payment)
     database.commit()
@@ -1616,7 +1616,7 @@ async def bulk_create_payment(items: list[PaymentCreate], database: Session = De
             # Basic validation for each item
 
             db_payment = Payment(
-                method=item_data.method,                Id=item_data.Id,                amount=item_data.amount            )
+                Id=item_data.Id,                method=item_data.method,                amount=item_data.amount            )
             database.add(db_payment)
             database.flush()  # Get ID without committing
             created_items.append(db_payment.id)
@@ -1663,8 +1663,8 @@ async def update_payment(payment_id: int, payment_data: PaymentCreate, database:
     if db_payment is None:
         raise HTTPException(status_code=404, detail="Payment not found")
 
-    setattr(db_payment, 'method', payment_data.method)
     setattr(db_payment, 'Id', payment_data.Id)
+    setattr(db_payment, 'method', payment_data.method)
     setattr(db_payment, 'amount', payment_data.amount)
     database.commit()
     database.refresh(db_payment)
@@ -1756,8 +1756,8 @@ def get_all_orderitem(detailed: bool = False, database: Session = Depends(get_db
     if detailed:
         # Eagerly load all relationships to avoid N+1 queries
         query = database.query(OrderItem)
-        query = query.options(joinedload(OrderItem.order))
         query = query.options(joinedload(OrderItem.refersTo))
+        query = query.options(joinedload(OrderItem.order))
         orderitem_list = query.all()
 
         # Serialize with relationships included
@@ -1767,13 +1767,6 @@ def get_all_orderitem(detailed: bool = False, database: Session = Depends(get_db
             item_dict.pop('_sa_instance_state', None)
 
             # Add many-to-one relationships (foreign keys for lookup columns)
-            if orderitem_item.order:
-                related_obj = orderitem_item.order
-                related_dict = related_obj.__dict__.copy()
-                related_dict.pop('_sa_instance_state', None)
-                item_dict['order'] = related_dict
-            else:
-                item_dict['order'] = None
             if orderitem_item.refersTo:
                 related_obj = orderitem_item.refersTo
                 related_dict = related_obj.__dict__.copy()
@@ -1781,6 +1774,13 @@ def get_all_orderitem(detailed: bool = False, database: Session = Depends(get_db
                 item_dict['refersTo'] = related_dict
             else:
                 item_dict['refersTo'] = None
+            if orderitem_item.order:
+                related_obj = orderitem_item.order
+                related_dict = related_obj.__dict__.copy()
+                related_dict.pop('_sa_instance_state', None)
+                item_dict['order'] = related_dict
+            else:
+                item_dict['order'] = None
 
 
             result.append(item_dict)
@@ -2111,7 +2111,7 @@ async def create_address(address_data: AddressCreate, database: Session = Depend
         raise HTTPException(status_code=400, detail="Order ID is required")
 
     db_address = Address(
-        zip_code=address_data.zip_code,        Id=address_data.Id,        city=address_data.city,        street=address_data.street,        customer_3_id=address_data.customer_3,        order_2_id=address_data.order_2        )
+        street=address_data.street,        city=address_data.city,        zip_code=address_data.zip_code,        Id=address_data.Id,        customer_3_id=address_data.customer_3,        order_2_id=address_data.order_2        )
 
     database.add(db_address)
     database.commit()
@@ -2138,7 +2138,7 @@ async def bulk_create_address(items: list[AddressCreate], database: Session = De
                 raise ValueError("Order ID is required")
 
             db_address = Address(
-                zip_code=item_data.zip_code,                Id=item_data.Id,                city=item_data.city,                street=item_data.street,                customer_3_id=item_data.customer_3,                order_2_id=item_data.order_2            )
+                street=item_data.street,                city=item_data.city,                zip_code=item_data.zip_code,                Id=item_data.Id,                customer_3_id=item_data.customer_3,                order_2_id=item_data.order_2            )
             database.add(db_address)
             database.flush()  # Get ID without committing
             created_items.append(db_address.id)
@@ -2185,10 +2185,10 @@ async def update_address(address_id: int, address_data: AddressCreate, database:
     if db_address is None:
         raise HTTPException(status_code=404, detail="Address not found")
 
+    setattr(db_address, 'street', address_data.street)
+    setattr(db_address, 'city', address_data.city)
     setattr(db_address, 'zip_code', address_data.zip_code)
     setattr(db_address, 'Id', address_data.Id)
-    setattr(db_address, 'city', address_data.city)
-    setattr(db_address, 'street', address_data.street)
     if address_data.customer_3 is not None:
         db_customer_3 = database.query(Customer).filter(Customer.id == address_data.customer_3).first()
         if not db_customer_3:
@@ -2371,7 +2371,7 @@ async def create_review(review_data: ReviewCreate, database: Session = Depends(g
         raise HTTPException(status_code=400, detail="Customer ID is required")
 
     db_review = Review(
-        comment=review_data.comment,        Id=review_data.Id,        rating=review_data.rating,        customer_2_id=review_data.customer_2        )
+        rating=review_data.rating,        Id=review_data.Id,        comment=review_data.comment,        customer_2_id=review_data.customer_2        )
 
     database.add(db_review)
     database.commit()
@@ -2396,7 +2396,7 @@ async def bulk_create_review(items: list[ReviewCreate], database: Session = Depe
                 raise ValueError("Customer ID is required")
 
             db_review = Review(
-                comment=item_data.comment,                Id=item_data.Id,                rating=item_data.rating,                customer_2_id=item_data.customer_2            )
+                rating=item_data.rating,                Id=item_data.Id,                comment=item_data.comment,                customer_2_id=item_data.customer_2            )
             database.add(db_review)
             database.flush()  # Get ID without committing
             created_items.append(db_review.id)
@@ -2443,9 +2443,9 @@ async def update_review(review_id: int, review_data: ReviewCreate, database: Ses
     if db_review is None:
         raise HTTPException(status_code=404, detail="Review not found")
 
-    setattr(db_review, 'comment', review_data.comment)
-    setattr(db_review, 'Id', review_data.Id)
     setattr(db_review, 'rating', review_data.rating)
+    setattr(db_review, 'Id', review_data.Id)
+    setattr(db_review, 'comment', review_data.comment)
     if review_data.customer_2 is not None:
         db_customer_2 = database.query(Customer).filter(Customer.id == review_data.customer_2).first()
         if not db_customer_2:
@@ -2783,12 +2783,12 @@ async def get_cartitem_of_cart(cart_id: int, database: Session = Depends(get_db)
 
 
 
-@app.post("/cart/methods/removeItem/", response_model=None, tags=["Cart Methods"])
-async def cart_removeItem(
+@app.post("/cart/methods/getTotal/", response_model=None, tags=["Cart Methods"])
+async def cart_getTotal(
     database: Session = Depends(get_db)
 ):
     """
-    Execute the removeItem class method on Cart.
+    Execute the getTotal class method on Cart.
     This method operates on all Cart entities or performs class-level operations.
     """
     try:
@@ -2822,7 +2822,7 @@ async def cart_removeItem(
 
         return {
             "class": "Cart",
-            "method": "removeItem",
+            "method": "getTotal",
             "status": "executed",
             "result": result,
             "output": output if output else None
@@ -2942,12 +2942,12 @@ async def cart_clear(
 
 
 
-@app.post("/cart/methods/getTotal/", response_model=None, tags=["Cart Methods"])
-async def cart_getTotal(
+@app.post("/cart/methods/removeItem/", response_model=None, tags=["Cart Methods"])
+async def cart_removeItem(
     database: Session = Depends(get_db)
 ):
     """
-    Execute the getTotal class method on Cart.
+    Execute the removeItem class method on Cart.
     This method operates on all Cart entities or performs class-level operations.
     """
     try:
@@ -2981,7 +2981,7 @@ async def cart_getTotal(
 
         return {
             "class": "Cart",
-            "method": "getTotal",
+            "method": "removeItem",
             "status": "executed",
             "result": result,
             "output": output if output else None
@@ -3122,7 +3122,7 @@ async def create_order(order_data: OrderCreate, database: Session = Depends(get_
         raise HTTPException(status_code=400, detail="Payment ID is required")
 
     db_order = Order(
-        status=order_data.status,        totalAmount=order_data.totalAmount,        Id=order_data.Id,        paidVia_id=order_data.paidVia        )
+        totalAmount=order_data.totalAmount,        Id=order_data.Id,        status=order_data.status,        paidVia_id=order_data.paidVia        )
 
     database.add(db_order)
     database.commit()
@@ -3163,7 +3163,7 @@ async def bulk_create_order(items: list[OrderCreate], database: Session = Depend
                 raise ValueError("Payment ID is required")
 
             db_order = Order(
-                status=item_data.status,                totalAmount=item_data.totalAmount,                Id=item_data.Id,                paidVia_id=item_data.paidVia            )
+                totalAmount=item_data.totalAmount,                Id=item_data.Id,                status=item_data.status,                paidVia_id=item_data.paidVia            )
             database.add(db_order)
             database.flush()  # Get ID without committing
             created_items.append(db_order.id)
@@ -3210,9 +3210,9 @@ async def update_order(order_id: int, order_data: OrderCreate, database: Session
     if db_order is None:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    setattr(db_order, 'status', order_data.status)
     setattr(db_order, 'totalAmount', order_data.totalAmount)
     setattr(db_order, 'Id', order_data.Id)
+    setattr(db_order, 'status', order_data.status)
     if order_data.paidVia is not None:
         db_paidVia = database.query(Payment).filter(Payment.id == order_data.paidVia).first()
         if not db_paidVia:
@@ -3280,59 +3280,6 @@ async def get_contains_of_order(order_id: int, database: Session = Depends(get_d
 
 
 
-@app.post("/order/methods/generateInvoice/", response_model=None, tags=["Order Methods"])
-async def order_generateInvoice(
-    database: Session = Depends(get_db)
-):
-    """
-    Execute the generateInvoice class method on Order.
-    This method operates on all Order entities or performs class-level operations.
-    """
-    try:
-        # Capture stdout to include print outputs in the response
-        import io
-        import sys
-        captured_output = io.StringIO()
-        sys.stdout = captured_output
-
-
-        # Method body not defined
-        result = None
-
-        # Restore stdout
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
-
-        # Handle result serialization
-        if hasattr(result, '__iter__') and not isinstance(result, (str, dict)):
-            # It's a list of entities
-            result_data = []
-            for item in result:
-                if hasattr(item, '__dict__'):
-                    item_dict = {k: v for k, v in item.__dict__.items() if not k.startswith('_')}
-                    result_data.append(item_dict)
-                else:
-                    result_data.append(str(item))
-            result = result_data
-        elif hasattr(result, '__dict__'):
-            result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
-
-        return {
-            "class": "Order",
-            "method": "generateInvoice",
-            "status": "executed",
-            "result": result,
-            "output": output if output else None
-        }
-    except Exception as e:
-        sys.stdout = sys.__stdout__
-        raise HTTPException(status_code=500, detail=f"Method execution failed: {str(e)}")
-
-
-
-
-
-
 @app.post("/order/methods/updateStatus/", response_model=None, tags=["Order Methods"])
 async def order_updateStatus(
     database: Session = Depends(get_db)
@@ -3373,6 +3320,59 @@ async def order_updateStatus(
         return {
             "class": "Order",
             "method": "updateStatus",
+            "status": "executed",
+            "result": result,
+            "output": output if output else None
+        }
+    except Exception as e:
+        sys.stdout = sys.__stdout__
+        raise HTTPException(status_code=500, detail=f"Method execution failed: {str(e)}")
+
+
+
+
+
+
+@app.post("/order/methods/generateInvoice/", response_model=None, tags=["Order Methods"])
+async def order_generateInvoice(
+    database: Session = Depends(get_db)
+):
+    """
+    Execute the generateInvoice class method on Order.
+    This method operates on all Order entities or performs class-level operations.
+    """
+    try:
+        # Capture stdout to include print outputs in the response
+        import io
+        import sys
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
+
+        # Method body not defined
+        result = None
+
+        # Restore stdout
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        # Handle result serialization
+        if hasattr(result, '__iter__') and not isinstance(result, (str, dict)):
+            # It's a list of entities
+            result_data = []
+            for item in result:
+                if hasattr(item, '__dict__'):
+                    item_dict = {k: v for k, v in item.__dict__.items() if not k.startswith('_')}
+                    result_data.append(item_dict)
+                else:
+                    result_data.append(str(item))
+            result = result_data
+        elif hasattr(result, '__dict__'):
+            result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
+
+        return {
+            "class": "Order",
+            "method": "generateInvoice",
             "status": "executed",
             "result": result,
             "output": output if output else None
@@ -3500,7 +3500,7 @@ async def create_user(user_data: UserCreate, database: Session = Depends(get_db)
 
 
     db_user = User(
-        createdAt=user_data.createdAt,        surname=user_data.surname,        name=user_data.name,        id=user_data.id        )
+        name=user_data.name,        createdAt=user_data.createdAt,        id=user_data.id,        surname=user_data.surname        )
 
     database.add(db_user)
     database.commit()
@@ -3523,7 +3523,7 @@ async def bulk_create_user(items: list[UserCreate], database: Session = Depends(
             # Basic validation for each item
 
             db_user = User(
-                createdAt=item_data.createdAt,                surname=item_data.surname,                name=item_data.name,                id=item_data.id            )
+                name=item_data.name,                createdAt=item_data.createdAt,                id=item_data.id,                surname=item_data.surname            )
             database.add(db_user)
             database.flush()  # Get ID without committing
             created_items.append(db_user.id)
@@ -3570,10 +3570,10 @@ async def update_user(user_id: int, user_data: UserCreate, database: Session = D
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    setattr(db_user, 'createdAt', user_data.createdAt)
-    setattr(db_user, 'surname', user_data.surname)
     setattr(db_user, 'name', user_data.name)
+    setattr(db_user, 'createdAt', user_data.createdAt)
     setattr(db_user, 'id', user_data.id)
+    setattr(db_user, 'surname', user_data.surname)
     database.commit()
     database.refresh(db_user)
 
@@ -3595,59 +3595,6 @@ async def delete_user(user_id: int, database: Session = Depends(get_db)):
 ############################################
 #   User Method Endpoints
 ############################################
-
-
-
-
-@app.post("/user/methods/login/", response_model=None, tags=["User Methods"])
-async def user_login(
-    database: Session = Depends(get_db)
-):
-    """
-    Execute the login class method on User.
-    This method operates on all User entities or performs class-level operations.
-    """
-    try:
-        # Capture stdout to include print outputs in the response
-        import io
-        import sys
-        captured_output = io.StringIO()
-        sys.stdout = captured_output
-
-
-        # Method body not defined
-        result = None
-
-        # Restore stdout
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
-
-        # Handle result serialization
-        if hasattr(result, '__iter__') and not isinstance(result, (str, dict)):
-            # It's a list of entities
-            result_data = []
-            for item in result:
-                if hasattr(item, '__dict__'):
-                    item_dict = {k: v for k, v in item.__dict__.items() if not k.startswith('_')}
-                    result_data.append(item_dict)
-                else:
-                    result_data.append(str(item))
-            result = result_data
-        elif hasattr(result, '__dict__'):
-            result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
-
-        return {
-            "class": "User",
-            "method": "login",
-            "status": "executed",
-            "result": result,
-            "output": output if output else None
-        }
-    except Exception as e:
-        sys.stdout = sys.__stdout__
-        raise HTTPException(status_code=500, detail=f"Method execution failed: {str(e)}")
-
-
 
 
 
@@ -3703,172 +3650,15 @@ async def user_register(
 
 
 
-############################################
-#
-#   Admin functions
-#
-############################################
-
-@app.get("/admin/", response_model=None, tags=["Admin"])
-def get_all_admin(detailed: bool = False, database: Session = Depends(get_db)) -> list:
-    from sqlalchemy.orm import joinedload
-
-    return database.query(Admin).all()
 
 
-@app.get("/admin/count/", response_model=None, tags=["Admin"])
-def get_count_admin(database: Session = Depends(get_db)) -> dict:
-    """Get the total count of Admin entities"""
-    count = database.query(Admin).count()
-    return {"count": count}
-
-
-@app.get("/admin/paginated/", response_model=None, tags=["Admin"])
-def get_paginated_admin(skip: int = 0, limit: int = 100, detailed: bool = False, database: Session = Depends(get_db)) -> dict:
-    """Get paginated list of Admin entities"""
-    total = database.query(Admin).count()
-    admin_list = database.query(Admin).offset(skip).limit(limit).all()
-    return {
-        "total": total,
-        "skip": skip,
-        "limit": limit,
-        "data": admin_list
-    }
-
-
-@app.get("/admin/search/", response_model=None, tags=["Admin"])
-def search_admin(
-    database: Session = Depends(get_db)
-) -> list:
-    """Search Admin entities by attributes"""
-    query = database.query(Admin)
-
-
-    results = query.all()
-    return results
-
-
-@app.get("/admin/{admin_id}/", response_model=None, tags=["Admin"])
-async def get_admin(admin_id: int, database: Session = Depends(get_db)) -> Admin:
-    db_admin = database.query(Admin).filter(Admin.id == admin_id).first()
-    if db_admin is None:
-        raise HTTPException(status_code=404, detail="Admin not found")
-
-    response_data = {
-        "admin": db_admin,
-}
-    return response_data
-
-
-
-@app.post("/admin/", response_model=None, tags=["Admin"])
-async def create_admin(admin_data: AdminCreate, database: Session = Depends(get_db)) -> Admin:
-
-
-    db_admin = Admin(
-        createdAt=admin_data.createdAt,        surname=admin_data.surname,        name=admin_data.name,        id=admin_data.id,        role=admin_data.role        )
-
-    database.add(db_admin)
-    database.commit()
-    database.refresh(db_admin)
-
-
-
-
-    return db_admin
-
-
-@app.post("/admin/bulk/", response_model=None, tags=["Admin"])
-async def bulk_create_admin(items: list[AdminCreate], database: Session = Depends(get_db)) -> dict:
-    """Create multiple Admin entities at once"""
-    created_items = []
-    errors = []
-
-    for idx, item_data in enumerate(items):
-        try:
-            # Basic validation for each item
-
-            db_admin = Admin(
-                createdAt=item_data.createdAt,                surname=item_data.surname,                name=item_data.name,                id=item_data.id,                role=item_data.role            )
-            database.add(db_admin)
-            database.flush()  # Get ID without committing
-            created_items.append(db_admin.id)
-        except Exception as e:
-            errors.append({"index": idx, "error": str(e)})
-
-    if errors:
-        database.rollback()
-        raise HTTPException(status_code=400, detail={"message": "Bulk creation failed", "errors": errors})
-
-    database.commit()
-    return {
-        "created_count": len(created_items),
-        "created_ids": created_items,
-        "message": f"Successfully created {len(created_items)} Admin entities"
-    }
-
-
-@app.delete("/admin/bulk/", response_model=None, tags=["Admin"])
-async def bulk_delete_admin(ids: list[int], database: Session = Depends(get_db)) -> dict:
-    """Delete multiple Admin entities at once"""
-    deleted_count = 0
-    not_found = []
-
-    for item_id in ids:
-        db_admin = database.query(Admin).filter(Admin.id == item_id).first()
-        if db_admin:
-            database.delete(db_admin)
-            deleted_count += 1
-        else:
-            not_found.append(item_id)
-
-    database.commit()
-
-    return {
-        "deleted_count": deleted_count,
-        "not_found": not_found,
-        "message": f"Successfully deleted {deleted_count} Admin entities"
-    }
-
-@app.put("/admin/{admin_id}/", response_model=None, tags=["Admin"])
-async def update_admin(admin_id: int, admin_data: AdminCreate, database: Session = Depends(get_db)) -> Admin:
-    db_admin = database.query(Admin).filter(Admin.id == admin_id).first()
-    if db_admin is None:
-        raise HTTPException(status_code=404, detail="Admin not found")
-
-    setattr(db_admin, 'role', admin_data.role)
-    database.commit()
-    database.refresh(db_admin)
-
-    return db_admin
-
-
-@app.delete("/admin/{admin_id}/", response_model=None, tags=["Admin"])
-async def delete_admin(admin_id: int, database: Session = Depends(get_db)):
-    db_admin = database.query(Admin).filter(Admin.id == admin_id).first()
-    if db_admin is None:
-        raise HTTPException(status_code=404, detail="Admin not found")
-    database.delete(db_admin)
-    database.commit()
-    return db_admin
-
-
-
-
-############################################
-#   Admin Method Endpoints
-############################################
-
-
-
-
-@app.post("/admin/methods/manageProducts/", response_model=None, tags=["Admin Methods"])
-async def admin_manageProducts(
+@app.post("/user/methods/login/", response_model=None, tags=["User Methods"])
+async def user_login(
     database: Session = Depends(get_db)
 ):
     """
-    Execute the manageProducts class method on Admin.
-    This method operates on all Admin entities or performs class-level operations.
+    Execute the login class method on User.
+    This method operates on all User entities or performs class-level operations.
     """
     try:
         # Capture stdout to include print outputs in the response
@@ -3900,61 +3690,8 @@ async def admin_manageProducts(
             result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
 
         return {
-            "class": "Admin",
-            "method": "manageProducts",
-            "status": "executed",
-            "result": result,
-            "output": output if output else None
-        }
-    except Exception as e:
-        sys.stdout = sys.__stdout__
-        raise HTTPException(status_code=500, detail=f"Method execution failed: {str(e)}")
-
-
-
-
-
-
-@app.post("/admin/methods/manageOrders/", response_model=None, tags=["Admin Methods"])
-async def admin_manageOrders(
-    database: Session = Depends(get_db)
-):
-    """
-    Execute the manageOrders class method on Admin.
-    This method operates on all Admin entities or performs class-level operations.
-    """
-    try:
-        # Capture stdout to include print outputs in the response
-        import io
-        import sys
-        captured_output = io.StringIO()
-        sys.stdout = captured_output
-
-
-        # Method body not defined
-        result = None
-
-        # Restore stdout
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
-
-        # Handle result serialization
-        if hasattr(result, '__iter__') and not isinstance(result, (str, dict)):
-            # It's a list of entities
-            result_data = []
-            for item in result:
-                if hasattr(item, '__dict__'):
-                    item_dict = {k: v for k, v in item.__dict__.items() if not k.startswith('_')}
-                    result_data.append(item_dict)
-                else:
-                    result_data.append(str(item))
-            result = result_data
-        elif hasattr(result, '__dict__'):
-            result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
-
-        return {
-            "class": "Admin",
-            "method": "manageOrders",
+            "class": "User",
+            "method": "login",
             "status": "executed",
             "result": result,
             "output": output if output else None
@@ -4097,7 +3834,7 @@ async def create_customer(customer_data: CustomerCreate, database: Session = Dep
 
 
     db_customer = Customer(
-        createdAt=customer_data.createdAt,        surname=customer_data.surname,        name=customer_data.name,        id=customer_data.id,        Id=customer_data.Id        )
+        name=customer_data.name,        createdAt=customer_data.createdAt,        id=customer_data.id,        surname=customer_data.surname,        Id=customer_data.Id        )
 
     database.add(db_customer)
     database.commit()
@@ -4162,7 +3899,7 @@ async def bulk_create_customer(items: list[CustomerCreate], database: Session = 
             # Basic validation for each item
 
             db_customer = Customer(
-                createdAt=item_data.createdAt,                surname=item_data.surname,                name=item_data.name,                id=item_data.id,                Id=item_data.Id            )
+                name=item_data.name,                createdAt=item_data.createdAt,                id=item_data.id,                surname=item_data.surname,                Id=item_data.Id            )
             database.add(db_customer)
             database.flush()  # Get ID without committing
             created_items.append(db_customer.id)
@@ -4340,59 +4077,6 @@ async def get_writes_of_customer(customer_id: int, database: Session = Depends(g
 
 
 
-@app.post("/customer/methods/placeOrder/", response_model=None, tags=["Customer Methods"])
-async def customer_placeOrder(
-    database: Session = Depends(get_db)
-):
-    """
-    Execute the placeOrder class method on Customer.
-    This method operates on all Customer entities or performs class-level operations.
-    """
-    try:
-        # Capture stdout to include print outputs in the response
-        import io
-        import sys
-        captured_output = io.StringIO()
-        sys.stdout = captured_output
-
-
-        # Method body not defined
-        result = None
-
-        # Restore stdout
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
-
-        # Handle result serialization
-        if hasattr(result, '__iter__') and not isinstance(result, (str, dict)):
-            # It's a list of entities
-            result_data = []
-            for item in result:
-                if hasattr(item, '__dict__'):
-                    item_dict = {k: v for k, v in item.__dict__.items() if not k.startswith('_')}
-                    result_data.append(item_dict)
-                else:
-                    result_data.append(str(item))
-            result = result_data
-        elif hasattr(result, '__dict__'):
-            result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
-
-        return {
-            "class": "Customer",
-            "method": "placeOrder",
-            "status": "executed",
-            "result": result,
-            "output": output if output else None
-        }
-    except Exception as e:
-        sys.stdout = sys.__stdout__
-        raise HTTPException(status_code=500, detail=f"Method execution failed: {str(e)}")
-
-
-
-
-
-
 @app.post("/customer/methods/writeReview/", response_model=None, tags=["Customer Methods"])
 async def customer_writeReview(
     database: Session = Depends(get_db)
@@ -4446,6 +4130,59 @@ async def customer_writeReview(
 
 
 
+@app.post("/customer/methods/placeOrder/", response_model=None, tags=["Customer Methods"])
+async def customer_placeOrder(
+    database: Session = Depends(get_db)
+):
+    """
+    Execute the placeOrder class method on Customer.
+    This method operates on all Customer entities or performs class-level operations.
+    """
+    try:
+        # Capture stdout to include print outputs in the response
+        import io
+        import sys
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
+
+        # Method body not defined
+        result = None
+
+        # Restore stdout
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        # Handle result serialization
+        if hasattr(result, '__iter__') and not isinstance(result, (str, dict)):
+            # It's a list of entities
+            result_data = []
+            for item in result:
+                if hasattr(item, '__dict__'):
+                    item_dict = {k: v for k, v in item.__dict__.items() if not k.startswith('_')}
+                    result_data.append(item_dict)
+                else:
+                    result_data.append(str(item))
+            result = result_data
+        elif hasattr(result, '__dict__'):
+            result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
+
+        return {
+            "class": "Customer",
+            "method": "placeOrder",
+            "status": "executed",
+            "result": result,
+            "output": output if output else None
+        }
+    except Exception as e:
+        sys.stdout = sys.__stdout__
+        raise HTTPException(status_code=500, detail=f"Method execution failed: {str(e)}")
+
+
+
+
+
+
 @app.post("/customer/methods/addToCart/", response_model=None, tags=["Customer Methods"])
 async def customer_addToCart(
     database: Session = Depends(get_db)
@@ -4486,6 +4223,269 @@ async def customer_addToCart(
         return {
             "class": "Customer",
             "method": "addToCart",
+            "status": "executed",
+            "result": result,
+            "output": output if output else None
+        }
+    except Exception as e:
+        sys.stdout = sys.__stdout__
+        raise HTTPException(status_code=500, detail=f"Method execution failed: {str(e)}")
+
+
+
+
+############################################
+#
+#   Admin functions
+#
+############################################
+
+@app.get("/admin/", response_model=None, tags=["Admin"])
+def get_all_admin(detailed: bool = False, database: Session = Depends(get_db)) -> list:
+    from sqlalchemy.orm import joinedload
+
+    return database.query(Admin).all()
+
+
+@app.get("/admin/count/", response_model=None, tags=["Admin"])
+def get_count_admin(database: Session = Depends(get_db)) -> dict:
+    """Get the total count of Admin entities"""
+    count = database.query(Admin).count()
+    return {"count": count}
+
+
+@app.get("/admin/paginated/", response_model=None, tags=["Admin"])
+def get_paginated_admin(skip: int = 0, limit: int = 100, detailed: bool = False, database: Session = Depends(get_db)) -> dict:
+    """Get paginated list of Admin entities"""
+    total = database.query(Admin).count()
+    admin_list = database.query(Admin).offset(skip).limit(limit).all()
+    return {
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "data": admin_list
+    }
+
+
+@app.get("/admin/search/", response_model=None, tags=["Admin"])
+def search_admin(
+    database: Session = Depends(get_db)
+) -> list:
+    """Search Admin entities by attributes"""
+    query = database.query(Admin)
+
+
+    results = query.all()
+    return results
+
+
+@app.get("/admin/{admin_id}/", response_model=None, tags=["Admin"])
+async def get_admin(admin_id: int, database: Session = Depends(get_db)) -> Admin:
+    db_admin = database.query(Admin).filter(Admin.id == admin_id).first()
+    if db_admin is None:
+        raise HTTPException(status_code=404, detail="Admin not found")
+
+    response_data = {
+        "admin": db_admin,
+}
+    return response_data
+
+
+
+@app.post("/admin/", response_model=None, tags=["Admin"])
+async def create_admin(admin_data: AdminCreate, database: Session = Depends(get_db)) -> Admin:
+
+
+    db_admin = Admin(
+        name=admin_data.name,        createdAt=admin_data.createdAt,        id=admin_data.id,        surname=admin_data.surname,        role=admin_data.role        )
+
+    database.add(db_admin)
+    database.commit()
+    database.refresh(db_admin)
+
+
+
+
+    return db_admin
+
+
+@app.post("/admin/bulk/", response_model=None, tags=["Admin"])
+async def bulk_create_admin(items: list[AdminCreate], database: Session = Depends(get_db)) -> dict:
+    """Create multiple Admin entities at once"""
+    created_items = []
+    errors = []
+
+    for idx, item_data in enumerate(items):
+        try:
+            # Basic validation for each item
+
+            db_admin = Admin(
+                name=item_data.name,                createdAt=item_data.createdAt,                id=item_data.id,                surname=item_data.surname,                role=item_data.role            )
+            database.add(db_admin)
+            database.flush()  # Get ID without committing
+            created_items.append(db_admin.id)
+        except Exception as e:
+            errors.append({"index": idx, "error": str(e)})
+
+    if errors:
+        database.rollback()
+        raise HTTPException(status_code=400, detail={"message": "Bulk creation failed", "errors": errors})
+
+    database.commit()
+    return {
+        "created_count": len(created_items),
+        "created_ids": created_items,
+        "message": f"Successfully created {len(created_items)} Admin entities"
+    }
+
+
+@app.delete("/admin/bulk/", response_model=None, tags=["Admin"])
+async def bulk_delete_admin(ids: list[int], database: Session = Depends(get_db)) -> dict:
+    """Delete multiple Admin entities at once"""
+    deleted_count = 0
+    not_found = []
+
+    for item_id in ids:
+        db_admin = database.query(Admin).filter(Admin.id == item_id).first()
+        if db_admin:
+            database.delete(db_admin)
+            deleted_count += 1
+        else:
+            not_found.append(item_id)
+
+    database.commit()
+
+    return {
+        "deleted_count": deleted_count,
+        "not_found": not_found,
+        "message": f"Successfully deleted {deleted_count} Admin entities"
+    }
+
+@app.put("/admin/{admin_id}/", response_model=None, tags=["Admin"])
+async def update_admin(admin_id: int, admin_data: AdminCreate, database: Session = Depends(get_db)) -> Admin:
+    db_admin = database.query(Admin).filter(Admin.id == admin_id).first()
+    if db_admin is None:
+        raise HTTPException(status_code=404, detail="Admin not found")
+
+    setattr(db_admin, 'role', admin_data.role)
+    database.commit()
+    database.refresh(db_admin)
+
+    return db_admin
+
+
+@app.delete("/admin/{admin_id}/", response_model=None, tags=["Admin"])
+async def delete_admin(admin_id: int, database: Session = Depends(get_db)):
+    db_admin = database.query(Admin).filter(Admin.id == admin_id).first()
+    if db_admin is None:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    database.delete(db_admin)
+    database.commit()
+    return db_admin
+
+
+
+
+############################################
+#   Admin Method Endpoints
+############################################
+
+
+
+
+@app.post("/admin/methods/manageOrders/", response_model=None, tags=["Admin Methods"])
+async def admin_manageOrders(
+    database: Session = Depends(get_db)
+):
+    """
+    Execute the manageOrders class method on Admin.
+    This method operates on all Admin entities or performs class-level operations.
+    """
+    try:
+        # Capture stdout to include print outputs in the response
+        import io
+        import sys
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
+
+        # Method body not defined
+        result = None
+
+        # Restore stdout
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        # Handle result serialization
+        if hasattr(result, '__iter__') and not isinstance(result, (str, dict)):
+            # It's a list of entities
+            result_data = []
+            for item in result:
+                if hasattr(item, '__dict__'):
+                    item_dict = {k: v for k, v in item.__dict__.items() if not k.startswith('_')}
+                    result_data.append(item_dict)
+                else:
+                    result_data.append(str(item))
+            result = result_data
+        elif hasattr(result, '__dict__'):
+            result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
+
+        return {
+            "class": "Admin",
+            "method": "manageOrders",
+            "status": "executed",
+            "result": result,
+            "output": output if output else None
+        }
+    except Exception as e:
+        sys.stdout = sys.__stdout__
+        raise HTTPException(status_code=500, detail=f"Method execution failed: {str(e)}")
+
+
+
+
+
+
+@app.post("/admin/methods/manageProducts/", response_model=None, tags=["Admin Methods"])
+async def admin_manageProducts(
+    database: Session = Depends(get_db)
+):
+    """
+    Execute the manageProducts class method on Admin.
+    This method operates on all Admin entities or performs class-level operations.
+    """
+    try:
+        # Capture stdout to include print outputs in the response
+        import io
+        import sys
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
+
+        # Method body not defined
+        result = None
+
+        # Restore stdout
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        # Handle result serialization
+        if hasattr(result, '__iter__') and not isinstance(result, (str, dict)):
+            # It's a list of entities
+            result_data = []
+            for item in result:
+                if hasattr(item, '__dict__'):
+                    item_dict = {k: v for k, v in item.__dict__.items() if not k.startswith('_')}
+                    result_data.append(item_dict)
+                else:
+                    result_data.append(str(item))
+            result = result_data
+        elif hasattr(result, '__dict__'):
+            result = {k: v for k, v in result.__dict__.items() if not k.startswith('_')}
+
+        return {
+            "class": "Admin",
+            "method": "manageProducts",
             "status": "executed",
             "result": result,
             "output": output if output else None
